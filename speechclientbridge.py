@@ -68,3 +68,9 @@ class SpeechClientBridge:
             print(f"❌ Transcription error: {e}")
         # finally:
         #     os.remove(temp_path)
+
+
+
+
+
+

@@ -3,15 +3,9 @@ import wave
 import audioop
 import tempfile
 from bark.bark import SAMPLE_RATE, generate_audio
-# from bark.bark.generation import preload_models
 from scipy.io.wavfile import write as write_wav
 import torch
 print("🖥️ CUDA Available:", torch.cuda.is_available())
-# Preload Bark models once
-
-# print("📦 Preloading Bark models...")
-# preload_models()
-# print("✅ Bark models preloaded.")
 
 def generate_tts_and_encode(text: str) -> bytes:
     # 1. Generate audio using Bark

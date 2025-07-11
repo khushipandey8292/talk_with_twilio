@@ -6,10 +6,10 @@ from speechclientbridge import SpeechClientBridge
 from tts_engine import generate_tts_and_encode
 import asyncio
 from bark.bark.generation import preload_models
-
+import logging
 
 app = FastAPI()
-
+logger = logging.getLogger("uvicorn")
 bark_ready = False 
 @app.on_event("startup")
 async def preload_bark():
@@ -26,6 +26,8 @@ async def return_twiml(request: Request):
     print(f"📞 Twilio hit /twiml endpoint! Request from: {request.client.host}")
     return templates.TemplateResponse("streams.xml", {"request": request})
 
+from starlette.websockets import WebSocketState
+
 async def on_transcription_response(response, websocket: WebSocket):
     if not response.results:
         return
@@ -37,16 +39,43 @@ async def on_transcription_response(response, websocket: WebSocket):
 
     # Generate TTS reply
     reply_ulaw = generate_tts_and_encode(f"You said: {transcript}")
-    import base64
     payload = base64.b64encode(reply_ulaw).decode("utf-8")
 
-    # Send back to Twilio
-    await websocket.send_text(json.dumps({
-        "event": "media",
-        "media": {
-            "payload": payload
-        }
-    }))
+    # ✅ Only send if WebSocket is still connected
+    if websocket.client_state == WebSocketState.CONNECTED:
+        try:
+            await websocket.send_text(json.dumps({
+                "event": "media",
+                "media": {
+                    "payload": payload
+                }
+            }))
+        except Exception as e:
+            print(f"⚠️ WebSocket send failed: {e}")
+    else:
+        print("⚠️ Skipped sending: WebSocket already closed")
+
+# async def on_transcription_response(response, websocket: WebSocket):
+#     if not response.results:
+#         return
+#     result = response.results[0]
+#     if not result.alternatives:
+#         return
+#     transcript = result.alternatives[0].transcript
+#     print("✅ Transcription:", transcript)
+
+#     # Generate TTS reply
+#     reply_ulaw = generate_tts_and_encode(f"You said: {transcript}")
+#     import base64
+#     payload = base64.b64encode(reply_ulaw).decode("utf-8")
+
+#     # Send back to Twilio
+#     await websocket.send_text(json.dumps({
+#         "event": "media",
+#         "media": {
+#             "payload": payload
+#         }
+#     }))
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -115,6 +144,22 @@ async def websocket_endpoint(websocket: WebSocket):
     finally:
         bridge.terminate()
         print("🔴 WebSocket connection closed")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
