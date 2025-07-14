@@ -9,15 +9,19 @@ from bark.bark.generation import preload_models
 import logging
 
 app = FastAPI()
-logger = logging.getLogger("uvicorn")
-bark_ready = False 
+
+
 @app.on_event("startup")
 async def preload_bark():
     global bark_ready
-    print("📦 Preloading Bark models...")
-    preload_models()
-    bark_ready = True
-    print("✅ Bark models ready.")
+    print("📦 Preloading Bark models...", flush=True)
+    try:
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, preload_models)  # Run in a thread
+        bark_ready = True
+        print("✅ Bark models ready.", flush=True)
+    except Exception as e:
+        print(f"❌ Bark preload failed: {e}", flush=True)
     
 templates = Jinja2Templates(directory="templates")
 

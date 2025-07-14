@@ -41,6 +41,7 @@ class SpeechClientBridge:
         print("🛑 Call ended. Transcribing...")
         self.transcribe()
 
+
     def transcribe(self):
         if not self.model or not self.pcm_audio_chunks:
             print("⚠️ No model or no audio data. Skipping transcription.")
