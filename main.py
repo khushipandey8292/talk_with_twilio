@@ -10,6 +10,8 @@ import logging
 
 app = FastAPI()
 
+logger = logging.getLogger("uvicorn")
+bark_ready = False 
 
 @app.on_event("startup")
 async def preload_bark():
@@ -22,6 +24,14 @@ async def preload_bark():
         print("✅ Bark models ready.", flush=True)
     except Exception as e:
         print(f"❌ Bark preload failed: {e}", flush=True)
+
+# @app.on_event("startup")
+# async def preload_bark():
+#     global bark_ready
+#     print("📦 Preloading Bark models...")
+#     preload_models()
+#     bark_ready = True
+#     print("✅ Bark models ready.")
     
 templates = Jinja2Templates(directory="templates")
 

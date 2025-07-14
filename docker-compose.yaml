@@ -7,4 +7,5 @@ services:
       - "8080:8080"
     # volumes:
     #   - .:/app
+    #   - C:/Users/Lenovo/.cache/huggingface:/root/.cache/huggingface 
     restart: unless-stopped
